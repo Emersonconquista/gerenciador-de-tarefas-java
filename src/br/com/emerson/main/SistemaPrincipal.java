@@ -1,57 +1,68 @@
 package br.com.emerson.main;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 import br.com.emerson.model.Tarefa;
 
 public class SistemaPrincipal {
+    private static final String ARQUIVO = "tarefas.txt";
+
     public static void main(String[] args) {
-        ArrayList<Tarefa> lista = new ArrayList<>();
+        ArrayList<Tarefa> lista = carregarTarefas();
         Scanner leitor = new Scanner(System.in);
         int opcao = 0;
 
         while (opcao != 5) {
-            System.out.println("\n--- GERENCIADOR DO EMERSON ---");
-            System.out.println("1 - Adicionar Tarefa");
-            System.out.println("2 - Listar Tarefas");
-            System.out.println("3 - Marcar como Concluída");
-            System.out.println("4 - Remover Tarefa");
-            System.out.println("5 - Sair");
+            System.out.println("\n--- GERENCIADOR COM MEMÓRIA ---");
+            System.out.println("1 - Adicionar | 2 - Listar | 3 - Concluir | 4 - Remover | 5 - Sair");
             System.out.print("Escolha: ");
-            
             opcao = leitor.nextInt();
-            leitor.nextLine(); 
+            leitor.nextLine();
 
             if (opcao == 1) {
-                System.out.print("O que precisa fazer? ");
-                String desc = leitor.nextLine();
-                lista.add(new Tarefa(desc));
-                System.out.println("Salvo com sucesso!");
-
+                System.out.print("Tarefa: ");
+                lista.add(new Tarefa(leitor.nextLine()));
+                salvarTarefas(lista);
             } else if (opcao == 2) {
-                System.out.println("\nSUA LISTA:");
-                for (int i = 0; i < lista.size(); i++) {
-                    System.out.println(i + " - " + lista.get(i));
-                }
-
-            } else if (opcao == 3) {
-                System.out.print("Digite o número da tarefa concluída: ");
-                int index = leitor.nextInt();
-                if (index >= 0 && index < lista.size()) {
-                    lista.get(index).setConcluida(true);
-                    System.out.println("Tarefa atualizada!");
-                }
-
+                for (int i = 0; i < lista.size(); i++) System.out.println(i + " - " + lista.get(i));
             } else if (opcao == 4) {
-                System.out.print("Digite o número da tarefa para remover: ");
-                int index = leitor.nextInt();
-                if (index >= 0 && index < lista.size()) {
-                    lista.remove(index);
-                    System.out.println("Tarefa removida!");
+                System.out.print("Índice para remover: ");
+                int idx = leitor.nextInt();
+                if (idx >= 0 && idx < lista.size()) {
+                    lista.remove(idx);
+                    salvarTarefas(lista);
                 }
             }
         }
-        System.out.println("Programa encerrado.");
         leitor.close();
+    }
+
+    private static void salvarTarefas(ArrayList<Tarefa> lista) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(ARQUIVO))) {
+            for (Tarefa t : lista) {
+                writer.println(t.paraArquivo());
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar!");
+        }
+    }
+
+    private static ArrayList<Tarefa> carregarTarefas() {
+        ArrayList<Tarefa> lista = new ArrayList<>();
+        File file = new File(ARQUIVO);
+        if (!file.exists()) return lista;
+
+        try (Scanner s = new Scanner(file)) {
+            while (s.hasNextLine()) {
+                String[] partes = s.nextLine().split(";");
+                Tarefa t = new Tarefa(partes[0]);
+                t.setConcluida(Boolean.parseBoolean(partes[1]));
+                lista.add(t);
+            }
+        } catch (FileNotFoundException e) {
+            return lista;
+        }
+        return lista;
     }
 }

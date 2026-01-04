@@ -17,4 +17,9 @@ public class Tarefa {
     public String toString() {
         return (concluida ? "[CONCLUÍDA] " : "[PENDENTE] ") + descricao;
     }
+    
+ // Adicione apenas isto ao final da sua classe Tarefa
+    public String paraArquivo() {
+        return descricao + ";" + concluida;
+    }
 }
